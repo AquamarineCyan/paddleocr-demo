@@ -1,4 +1,4 @@
-paddleocr
-paddlex
-paddlepaddle-gpu
+paddleocr==3.4.0
+paddlepaddle-gpu==3.2.0
+paddlex==3.4.1
 pyinstaller
