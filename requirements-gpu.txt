@@ -1,0 +1,4 @@
+paddleocr
+paddlex
+paddlepaddle-gpu
+pyinstaller
