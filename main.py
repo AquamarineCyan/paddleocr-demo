@@ -6,7 +6,10 @@ except ImportError:
 
 from paddleocr import PaddleOCR
 
-ocr = PaddleOCR(use_gpu=USE_GPU)
+if USE_GPU:
+    ocr = PaddleOCR(use_gpu=USE_GPU)
+else:
+    ocr = PaddleOCR()
 
 result = ocr.ocr("test.png")
 
