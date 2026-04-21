@@ -1,32 +1,58 @@
-name: build-ocr-exe
+name: Build and Package
 
 on:
   push:
     branches: [ main ]
+  workflow_dispatch: 
 
 jobs:
   build:
     runs-on: windows-latest
+    strategy:
+      matrix:
+        variant: ["cpu", "gpu"]
 
+    name: Build (${{ matrix.variant }})
     steps:
-    - name: Checkout
-      uses: actions/checkout@v4
-
-    - name: Setup Python
-      uses: actions/setup-python@v5
-      with:
-        python-version: "3.10"
-
-    - name: Install dependencies
-      run: |
-        pip install -r requirements.txt
-
-    - name: Build EXE
-      run: |
-        python package.py --file main.py --nvidia
-
-    - name: Upload artifact
-      uses: actions/upload-artifact@v4
-      with:
-        name: paddleocr-exe
-        path: dist/
+      - name: Checkout
+        uses: actions/checkout@v4
+  
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+  
+      - name: Cache pip packages
+        uses: actions/cache@v4
+        with:
+          path: ~\AppData\Local\pip\Cache
+          key: ${{ runner.os }}-pip-${{ hashFiles(matrix.variant == 'cpu' && 'requirements.txt' || 'requirements-gpu.txt') }}-${{ matrix.variant }}
+          restore-keys: |
+            ${{ runner.os }}-pip-
+  
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          if ("${{ matrix.variant }}" -eq "cpu") {
+              pip install -r requirements.txt
+          } else {
+              pip install -r requirements-gpu.txt
+          }
+  
+      - name: Build EXE
+        shell: pwsh
+        run: |
+          $args = "--file main.py"
+          if ("${{ matrix.variant }}" -eq "gpu") {
+              $args += " --nvidia"
+          }
+          Write-Host "Running: python package.py $args"
+          python package.py $args
+  
+  
+      - name: Upload artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: paddleocr-${{ matrix.variant }}
+          path: dist/
+          retention-days: 7
