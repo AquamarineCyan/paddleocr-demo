@@ -15,7 +15,7 @@ jobs:
     name: Build ${{ matrix.variant }}
     steps:
       - name: Checkout
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Python
         uses: actions/setup-python@v6
@@ -31,7 +31,7 @@ jobs:
           if ("${{ matrix.variant }}" -eq "cpu") {
               pip install -r requirements.txt
           } else {
-              pip install -r requirements-gpu.txt
+              pip install --dry-run -r requirements-gpu.txt
           }
 
       - name: Build EXE
@@ -44,7 +44,7 @@ jobs:
           }
 
       - name: Upload artifact
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: paddleocr-${{ matrix.variant }}
           path: dist/output/
