@@ -1,18 +1,12 @@
 name: Build and Package
 
 on:
-  push:
-    branches: [ main ]
   workflow_dispatch: 
 
 jobs:
-  build:
+  build-cpu:
+    name: Build CPU
     runs-on: windows-latest
-    strategy:
-      matrix:
-        variant: ["cpu", "gpu"]
-
-    name: Build ${{ matrix.variant }}
     steps:
       - name: Checkout
         uses: actions/checkout@v6
@@ -22,30 +16,48 @@ jobs:
         with:
           python-version: "3.10"
           cache: 'pip'
-          cache-dependency-path: |
-            ${{ matrix.variant == 'cpu' && 'requirements.txt' || 'requirements-gpu.txt' }}
+          cache-dependency-path: requirements.txt
 
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
-          if ("${{ matrix.variant }}" -eq "cpu") {
-              pip install -r requirements.txt
-          } else {
-              pip install --dry-run -r requirements-gpu.txt
-          }
+          pip install -r requirements.txt
 
       - name: Build EXE
-        shell: pwsh
-        run: |
-          if ("${{ matrix.variant }}" -eq "cpu") {
-              pyinstaller main.spec
-          } else {
-              pyinstaller main-gpu.spec
-          }
+        run: pyinstaller main.spec
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7
         with:
-          name: paddleocr-${{ matrix.variant }}
-          path: dist/output/
-          retention-days: 7
+          name: paddleocr
+          path: |
+              dist/output/
+              test.png
+
+  build-gpu:
+    name: Build GPU
+    runs-on: windows-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v6
+
+      - name: Setup Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.10"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install --dry-run -r requirements.txt
+
+      - name: Build EXE
+        run: pyinstaller main-gpu.spec
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7
+        with:
+          name: paddleocr-gpu
+          path: |
+              dist/output/
+              test.png
