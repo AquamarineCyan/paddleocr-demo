@@ -21,14 +21,9 @@ jobs:
         uses: actions/setup-python@v5
         with:
           python-version: "3.10"
-  
-      - name: Cache pip packages
-        uses: actions/cache@v4
-        with:
-          path: ~\AppData\Local\pip\Cache
-          key: ${{ runner.os }}-pip-${{ hashFiles(matrix.variant == 'cpu' && 'requirements.txt' || 'requirements-gpu.txt') }}-${{ matrix.variant }}
-          restore-keys: |
-            ${{ runner.os }}-pip-
+          cache: 'pip'
+          cache-dependency-path: |
+            ${{ matrix.variant == 'cpu' && 'requirements.txt' || 'requirements-gpu.txt' }}
   
       - name: Install dependencies
         run: |
