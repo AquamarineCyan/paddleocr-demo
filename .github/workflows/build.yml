@@ -16,7 +16,7 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-  
+
       - name: Setup Python
         uses: actions/setup-python@v5
         with:
@@ -24,7 +24,7 @@ jobs:
           cache: 'pip'
           cache-dependency-path: |
             ${{ matrix.variant == 'cpu' && 'requirements.txt' || 'requirements-gpu.txt' }}
-  
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
@@ -33,18 +33,16 @@ jobs:
           } else {
               pip install -r requirements-gpu.txt
           }
-  
+
       - name: Build EXE
         shell: pwsh
         run: |
-          $args = "--file main.py"
-          if ("${{ matrix.variant }}" -eq "gpu") {
-              $args += " --nvidia"
+          if ("${{ matrix.variant }}" -eq "cpu") {
+              pyinstaller main.spec
+          } else {
+              pyinstaller main-gpu.spec
           }
-          Write-Host "Running: python package.py $args"
-          python package.py $args
-  
-  
+
       - name: Upload artifact
         uses: actions/upload-artifact@v4
         with:
